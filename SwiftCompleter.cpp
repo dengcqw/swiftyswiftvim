@@ -216,7 +216,7 @@ static bool CodeCompleteRequest(sourcekitd_uid_t requestUID, const char *name,
 
   auto args = sourcekitd_request_array_create(nullptr, 0);
   {
-    sourcekitd_request_array_set_string(args, SOURCEKITD_ARRAY_APPEND, name);
+    //sourcekitd_request_array_set_string(args, SOURCEKITD_ARRAY_APPEND, name);
 
     for (auto arg : compilerArgs)
       sourcekitd_request_array_set_string(args, SOURCEKITD_ARRAY_APPEND,
