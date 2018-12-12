@@ -298,9 +298,11 @@ EndpointImpl makeCompletionsEndpoint() {
     auto line = bodyJSON.get<int>("line");
     auto contents = bodyJSON.get<std::string>("contents");
     auto flags = as_vector<std::string>(bodyJSON, "flags");
+    auto query = bodyJSON.get<std::string>("query");
     logger << "file_name:" << fileName;
     logger << "column:" << column;
     logger << "line:" << line;
+    logger << "query:" << query;
     for (auto &f : flags) {
       logger << "flags:" << f;
     }
@@ -316,7 +318,7 @@ EndpointImpl makeCompletionsEndpoint() {
 
     logger << "SEND_REQ";
     auto candidates = completer.CandidatesForLocationInFile(
-        fileName, line, column, files, flags);
+        fileName, line, column, files, flags, query);
 
     logger << "GOT_CANDIDATES";
     session->logger().log(LogLevelExtreme, candidates);

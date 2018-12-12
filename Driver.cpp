@@ -19,7 +19,7 @@ struct Runner {
 
     files.push_back(unsavedFile);
     auto result = completer.CandidatesForLocationInFile(fileName, line, column,
-                                                        files, flags);
+                                                        files, flags, nullptr);
 
     return result;
   }

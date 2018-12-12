@@ -83,6 +83,7 @@ namespace ssvim {
 struct CompletionContext {
   // The current source source file's absolute path
   std::string sourceFilename;
+  std::string completionToken;
 
   // Position of the completion
   unsigned line;
@@ -353,10 +354,12 @@ int SourceKitService::CompletionUpdate(CompletionContext &ctx,
   unsigned CodeCompletionOffset = 0;
   std::string CleanFile;
   GetOffset(ctx, &CodeCompletionOffset, &CleanFile);
+  _logger << "token";
+  _logger << ctx.completionToken;
 
   bool isError = CodeCompleteRequest(
       RequestCodeCompleteUpdate, ctx.sourceFilename.data(),
-      CodeCompletionOffset, CleanFile.c_str(), ctx.compilerArgs(), nullptr,
+      CodeCompletionOffset, CleanFile.c_str(), ctx.compilerArgs(), ctx.completionToken.c_str(),
       [&](sourcekitd_object_t response) -> bool {
         if (sourcekitd_response_is_error(response)) {
           return true;
@@ -466,13 +469,15 @@ auto DiagnosticFlagsFromFlags(std::string filename,
 const std::string SwiftCompleter::CandidatesForLocationInFile(
     const std::string &filename, int line, int column,
     const std::vector<UnsavedFile> &unsavedFiles,
-    const std::vector<std::string> &flags) {
+    const std::vector<std::string> &flags,
+    const std::string &completionToken) {
   CompletionContext ctx;
   ctx.sourceFilename = filename;
   ctx.line = line;
   ctx.column = column;
   ctx.unsavedFiles = unsavedFiles;
   ctx.flags = flags;
+  ctx.completionToken = completionToken;
 
   SourceKitService sktService(_logger.level());
   char *response = NULL;

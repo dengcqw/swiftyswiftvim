@@ -32,7 +32,8 @@ public:
   const std::string
   CandidatesForLocationInFile(const std::string &filename, int line, int column,
                               const std::vector<UnsavedFile> &unsavedFiles,
-                              const std::vector<std::string> &flags);
+                              const std::vector<std::string> &flags,
+                              const std::string &completionToken);
 
   const std::string
   DiagnosticsForFile(const std::string &filename,
