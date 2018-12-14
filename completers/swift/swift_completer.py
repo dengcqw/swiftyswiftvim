@@ -38,6 +38,7 @@ import requests
 import threading
 import os
 import time
+import re
 
 
 HMAC_SECRET_LENGTH = 16
@@ -336,24 +337,29 @@ class SwiftCompletion():
     self.module_path = ''
     # TODO: Give the user the option to use for placeholders for quick typing:
     # insertion_text is conditionally ( key.sourcetext ).
+    # self.name = re.sub(r'<#.*?#>', "", json_value.get( 'key.sourcetext' ))
     self.name = json_value.get( 'key.sourcetext' )
     self.description = json_value.get( 'key.description' )
     self.type = 'swift'
 
     self.modulename = json_value.get( 'key.modulename' )
     self.context = json_value.get( 'key.context' )
-    json_docbrief = json_value.get( 'key.doc.brief' )
+    # json_docbrief = json_value.get( 'key.doc.brief' )
 
-    if json_docbrief:
-      self.docbrief = self.description + '\n' + json_docbrief
-    else:
-      # If we don't have a docbrief, format some information to
-      # help the user comprehend where this came from.
-      if self.modulename:
-        topline = self.modulename + ' - ' + self.description
-      else:
-        topline = self.description
-      self.docbrief = topline + '\n' + self.context
+    # logging.info( 'xxCompletionsName: ' + self.name)
+    # logging.info( 'xxCompletionsdesc: ' + self.description)
+    self.docbrief = ''
+
+    # if json_docbrief:
+      # self.docbrief = self.description + '\n' + json_docbrief
+    # else:
+      # # If we don't have a docbrief, format some information to
+      # # help the user comprehend where this came from.
+      # if self.modulename:
+        # topline = self.modulename + ' - ' + self.description
+      # else:
+        # topline = self.description
+      # self.docbrief = topline + '\n' + self.context
 
 
 class SwiftCompletionDocument():
