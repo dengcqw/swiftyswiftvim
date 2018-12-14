@@ -121,6 +121,7 @@ public:
   SourceKitService(LogLevel logLevel);
   int CompletionUpdate(CompletionContext &ctx, char **oresponse);
   int CompletionOpen(CompletionContext &ctx, char **oresponse);
+  int CompletionClose(CompletionContext &ctx);
   int EditorOpen(CompletionContext &ctx, char **oresponse);
   int EditorReplaceText(CompletionContext &ctx, char **oresponse);
 };
@@ -396,6 +397,27 @@ int SourceKitService::CompletionOpen(CompletionContext &ctx, char **oresponse) {
   return isError;
 }
 
+int SourceKitService::CompletionClose(CompletionContext &ctx) {
+  _logger << "WILL_COMPLETION_CLOSE";
+  sourcekitd_uid_t RequestCodeCompleteOpen =
+      sourcekitd_uid_get_from_cstr("source.request.codecomplete.close");
+  unsigned CodeCompletionOffset = 0;
+  std::string CleanFile;
+  GetOffset(ctx, &CodeCompletionOffset, &CleanFile);
+
+  auto request = CreateBaseRequest(RequestCodeCompleteOpen, ctx.sourceFilename.data(), CodeCompletionOffset);
+  bool isError = SendRequestSync(request, [&](sourcekitd_object_t response) -> bool {
+        if (sourcekitd_response_is_error(response)) {
+          return true;
+        }
+        return false;
+      });
+  sourcekitd_request_release(request);
+
+  _logger << isError;
+  _logger << "DID_COMPLETION_CLOSE";
+  return isError;
+}
 // Open sourcekit in editor mode
 // On success, this returns a list of after the contents have
 // gone through parsing.
@@ -483,6 +505,8 @@ const std::string SwiftCompleter::CandidatesForLocationInFile(
   char *response = NULL;
   sktService.CompletionOpen(ctx, &response);
   sktService.CompletionUpdate(ctx, &response);
+  sktService.CompletionClose(ctx);
+
   if (response == NULL) {
     // FIXME: Propagate SourceKitService Errors
     static auto EmptyResponse = "{ 'key.results':[] }";
