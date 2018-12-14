@@ -351,9 +351,9 @@ EndpointImpl makeDiagnosticsEndpoint() {
     auto contents = bodyJSON.get<std::string>("contents");
     auto flags = as_vector<std::string>(bodyJSON, "flags");
     session->logger() << "file_name:" << fileName;
-    for (auto &f : flags) {
-      session->logger().log(LogLevelInfo, "flags:", f);
-    }
+    //for (auto &f : flags) {
+      //session->logger().log(LogLevelInfo, "flags:", f);
+    //}
 
     using namespace ssvim;
     SwiftCompleter completer(session->logger().level());

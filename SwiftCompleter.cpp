@@ -107,9 +107,8 @@ struct CompletionContext {
   std::vector<std::string> DefaultOSXArgs() {
     return {
         "-sdk",
-        "/Applications/Xcode.app/Contents/Developer/Platforms/"
-        "MacOSX.platform/Developer/SDKs/MacOSX.sdk",
-        "-target", "x86_64-apple-macosx10.12",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk",
+        "-target", "arm64-apple-ios8.0",
     };
   }
 };
@@ -119,7 +118,6 @@ class SourceKitService {
 
 public:
   SourceKitService(LogLevel logLevel);
-  int CompletionUpdate(CompletionContext &ctx, char **oresponse);
   int CompletionOpen(CompletionContext &ctx, char **oresponse);
   int CompletionClose(CompletionContext &ctx);
   int EditorOpen(CompletionContext &ctx, char **oresponse);
@@ -187,7 +185,7 @@ static sourcekitd_object_t CreateBaseRequest(sourcekitd_uid_t requestUID,
       sourcekitd_request_dictionary_create(nullptr, nullptr, 0);
   sourcekitd_request_dictionary_set_uid(request, KeyRequest, requestUID);
   sourcekitd_request_dictionary_set_int64(request, KeyOffset, offset);
-  sourcekitd_request_dictionary_set_string(request, KeyName, name);
+  //sourcekitd_request_dictionary_set_string(request, KeyName, name);
   return request;
 }
 
@@ -210,10 +208,10 @@ static bool CodeCompleteRequest(sourcekitd_uid_t requestUID, const char *name,
   {
     if (filterText) {
       sourcekitd_request_dictionary_set_string(opts, KeyFilterText, filterText);
+      sourcekitd_request_dictionary_set_value(request, KeyCodeCompleteOptions,
+                                          opts);
     }
   }
-  sourcekitd_request_dictionary_set_value(request, KeyCodeCompleteOptions,
-                                          opts);
   sourcekitd_request_release(opts);
 
   auto args = sourcekitd_request_array_create(nullptr, 0);
@@ -346,6 +344,7 @@ SourceKitService::SourceKitService(ssvim::LogLevel logLevel)
   });
 }
 
+<<<<<<< HEAD
 // Update the file and get latest results.
 int SourceKitService::CompletionUpdate(CompletionContext &ctx,
                                        char **oresponse) {
@@ -377,7 +376,7 @@ int SourceKitService::CompletionUpdate(CompletionContext &ctx,
 int SourceKitService::CompletionOpen(CompletionContext &ctx, char **oresponse) {
   _logger << "WILL_COMPLETION_OPEN";
   sourcekitd_uid_t RequestCodeCompleteOpen =
-      sourcekitd_uid_get_from_cstr("source.request.codecomplete.open");
+      sourcekitd_uid_get_from_cstr("source.request.codecomplete");
   unsigned CodeCompletionOffset = 0;
   std::string CleanFile;
   GetOffset(ctx, &CodeCompletionOffset, &CleanFile);
@@ -394,6 +393,7 @@ int SourceKitService::CompletionOpen(CompletionContext &ctx, char **oresponse) {
         return false;
       });
   _logger << "DID_COMPLETION_OPEN";
+  _logger << CodeCompletionOffset;
   return isError;
 }
 
@@ -432,7 +432,7 @@ int SourceKitService::EditorOpen(CompletionContext &ctx, char **oresponse) {
                        return true;
                      }
                      *oresponse = PrintResponse(response);
-                     _logger.log(LogLevelExtreme, *oresponse);
+                     //_logger.log(LogLevelExtreme, *oresponse);
                      return false;
                    });
   _logger << "DID_EDITOR_OPEN";
@@ -455,7 +455,7 @@ int SourceKitService::EditorReplaceText(CompletionContext &ctx,
           return true;
         }
         *oresponse = PrintResponse(response);
-        _logger.log(LogLevelExtreme, *oresponse);
+        //_logger.log(LogLevelExtreme, *oresponse);
         return false;
       });
   _logger << "DID_EDITOR_REPLACETEXT";
