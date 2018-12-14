@@ -1,3 +1,38 @@
+
+这个项目有严重bug，对多文件补全，无法成功，原因是对sourcekit使用不当
+参考 swift-master/tools/SourceKit/tools/complete-test/complete-test.cpp
+compileArgs 多加了当前文件名  (commit 1ff0b96ca66a2070f4e45b35c2b0d5bf38f094f5)
+
+
+猜测对于OC，Swift混编的项目，我们项目如此，不需要使用 (XcodeCompilationDatabase)对整个xcode输出编译log进行处理
+因为编译swift只用了一条命令: swiftc
+swiftc 带入了所有swift文件，所以命令很长，
+每个文件都是使用同一条编译命令，所以传入sourcekit的compileArgs 都是一样的
+在根目录下放置compile_commands.json，command可以从xcode中直接拷贝
+[{
+"command": "swiftc -module-name TestComplete -sdk (pathto)\/iPhoneOS.sdk -target arm64-apple-ios9.0 (pathtofile1)\/file1.swift (pathtofile2)\/file2.swift"
+}]
+
+
+修改YouCompleteMe/third_party/ycmd/cpp/ycm/CandidateRepository.cpp中一个变量，控制补全内容的最大长度，苹果API真长
+    -const size_t MAX_CANDIDATE_SIZE = 80;
+    +const size_t MAX_CANDIDATE_SIZE = 180;
+重新编译YouCompleteMe:  sudo python install.py
+icmFiles/swift 拷入YouCompleteMe/third_party/ycmd/ycmd/completers
+icmFiles/icm_placeholder_behavior.vim  拷入YouCompleteMe/plugin  增加 tab 跳 <##>占位符功能
+
+在.vimrc中加入ycm对swift的支持
+    let g:ycm_semantic_triggers =  {
+        \   'swift' : ['.', 're![_a-zA-Z]' ],
+        \ }
+    autocmd BufNewFile,BufRead *.swift set filetype=swift
+
+
+本项目swiftyswiftvim  拷入 /YouCompleteMe/third_party/ycmd/third_party/swiftyswiftvim
+编译后会产生build/http_server 等文件
+
+
+
 # Swifty Swift Vim
 
 Swifty Swift Vim is a semantic backend for the Swift programming language
@@ -127,13 +162,13 @@ This project is still in early phases, and development happens sporadically.
 - Get `GoToDefinition` working end to end
 - Implement a semantic search engine
 
-## Acknowledgements 
+## Acknowledgements
 
 The HTTP server stands on the shoulders of [Beast](https://github.com/vinniefalco/Beast)(s).
 Many thanks to @vinniefalco for Beast and his guidance for getting this up and
 running.
 
-Thank you Apple for opening up the [Swift](https://github.com/apple/swift/) compiler and 
+Thank you Apple for opening up the [Swift](https://github.com/apple/swift/) compiler and
 IDE facilities. This project would not be possible without this.
 
 Thanks to [@Valloric](https://github.com/Valloric/) and the [YCMD/YouCompleteMe](https://github.com/Valloric/YouCompleteMe/) team!
