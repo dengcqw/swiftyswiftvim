@@ -119,6 +119,7 @@ class SourceKitService {
 public:
   SourceKitService(LogLevel logLevel);
   int CompletionOpen(CompletionContext &ctx, char **oresponse);
+  int CompletionUpdate(CompletionContext &ctx, char **oresponse);
   int CompletionClose(CompletionContext &ctx);
   int EditorOpen(CompletionContext &ctx, char **oresponse);
   int EditorReplaceText(CompletionContext &ctx, char **oresponse);
@@ -344,7 +345,6 @@ SourceKitService::SourceKitService(ssvim::LogLevel logLevel)
   });
 }
 
-<<<<<<< HEAD
 // Update the file and get latest results.
 int SourceKitService::CompletionUpdate(CompletionContext &ctx,
                                        char **oresponse) {
