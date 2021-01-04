@@ -1,8 +1,9 @@
+#include "boost/asio/io_service.hpp"
+#include "boost/beast/http/verb.hpp"
 #import <arpa/inet.h>
+#include <ostream>
 #import <assert.h>
-#import <beast/core/streambuf.hpp>
-#import <beast/http.hpp>
-#import <boost/asio.hpp>
+#import <boost/beast.hpp>
 #import <boost/lexical_cast.hpp>
 #import <boost/property_tree/json_parser.hpp>
 #import <boost/property_tree/ptree.hpp>
@@ -14,8 +15,14 @@
 #import <tuple>
 #import <vector>
 
-using namespace beast::http;
-using namespace boost::asio;
+namespace beast = boost::beast;     // from <boost/beast.hpp>
+namespace net = boost::asio;        // from <boost/asio.hpp>
+namespace http = beast::http;       // from <boost/beast/http.hpp>
+
+using tcp_type = net::ip::tcp;
+using socket_type = tcp_type::socket;
+using req_type = http::request<http::string_body>;
+using resp_type = http::response<http::string_body>;
 
 namespace ssvim {
 // Result is a variant where there can be a success or error case
@@ -57,32 +64,31 @@ typedef enum TestErrorCode {
   TestErrorCodeUndefined,
 } TestErrorCode;
 
-static ssvim::Result<response<string_body>, TestErrorCode>
+static ssvim::Result<resp_type, TestErrorCode>
 PostRequest(std::string port, std::string path, std::string body) {
-  io_service ios;
+  net::io_service ios;
 
   // Run tests on localhost
   auto host = "localhost";
   try {
-    ip::tcp::resolver r(ios);
-    auto it = r.resolve(ip::tcp::resolver::query{host, port});
-    ip::tcp::socket sock(ios);
+    tcp_type::resolver r(ios);
+    auto it = r.resolve(tcp_type::resolver::query{host, port});
+    socket_type sock(ios);
     connect(sock, it);
     auto ep = sock.remote_endpoint();
-    request<string_body> req;
-    req.method = "POST";
-    req.url = path;
-    req.body = body;
-    req.version = 11;
-    req.fields.insert("Host", host + std::string(":") +
-                                  boost::lexical_cast<std::string>(ep.port()));
-    req.fields.insert("User-Agent", "ssvim-integration_tests/http");
-    req.fields.insert("Content-Type", "application/json");
-    prepare(req);
-    write(sock, req);
-    response<string_body> res;
-    streambuf sb;
-    beast::http::read(sock, sb, res);
+    req_type req;
+    req.method(http::verb::post);
+    req.target(path);
+    req.body() = body;
+    req.version(11);
+    req.insert("Host", host + std::string(":") + boost::lexical_cast<std::string>(ep.port()));
+    req.insert("User-Agent", "ssvim-integration_tests/http");
+    req.insert("Content-Type", "application/json");
+    req.prepare_payload();
+    http::write(sock, req);
+    resp_type res;
+    beast::flat_buffer buffer;
+    http::read(sock, buffer, res);
     return res;
   } catch (beast::system_error const &ec) {
     std::cerr << host << ": " << ec.what();
@@ -153,16 +159,16 @@ public:
     using namespace ssvim::ResultStatus;
     auto body = MakeCompletionPostBody(19, 15, exampleName, example, flags);
     auto responseValue = PostRequest(_boundPort, "/completions", body);
-    auto res = Get<response<string_body>>(responseValue);
-    assert(res.body.length() > 0);
-    assert(res.status == 200);
+    auto res = Get<resp_type>(responseValue);
+    assert(res.body().length() > 0);
+    assert(res.result_int() == 200);
   }
 
   void testStatus() {
     using namespace ssvim::ResultStatus;
     auto responseValue = PostRequest(_boundPort, "/status", "");
-    auto res = Get<response<string_body>>(responseValue);
-    assert(res.status == 200);
+    auto res = Get<resp_type>(responseValue);
+    assert(res.result_int() == 200);
   }
 
   void testRunningAfterGarbageJSON() {
@@ -182,7 +188,9 @@ std::tuple<std::string, int> testBind() {
   server.sin_port = htons(0);
 
   // Bind
-  bind(socket_desc, (struct sockaddr *)&server, sizeof(server));
+  int ret = bind(socket_desc, (struct sockaddr *)&server, sizeof(server));
+  if (ret == 0) {
+  }
 
   int sock = 0;
   socklen_t len = sizeof(struct sockaddr);
@@ -204,11 +212,13 @@ int main(int, char const *[]) {
   // session.
   auto bootInfo = testBind();
   auto boundPort = std::to_string(std::get<int>(bootInfo));
-  auto startCmd = std::string("`./build/http_server");
+  auto startCmd = std::string("`./http_server");
   startCmd += " --port ";
   startCmd += boundPort;
   startCmd += " >/dev/null`&";
 
+  std::cout << startCmd << std::endl;
+  std::cout.flush();
   // Startup the service
   int started = system(startCmd.c_str());
   assert(started == 0 && "Failed to start");
@@ -221,9 +231,11 @@ int main(int, char const *[]) {
   IntegrationTestSuite suite(boundPort);
 
   std::cout << "testStatus" << std::endl;
+  std::cout.flush();
   suite.testStatus();
 
   std::cout << "testSuccessfulCompletion" << std::endl;
+  std::cout.flush();
   suite.testSuccessfulCompletion();
 
   // TODO:
@@ -234,7 +246,7 @@ int main(int, char const *[]) {
 
   using namespace ssvim::ResultStatus;
   auto responseValue = PostRequest(boundPort, "/shutdown", "");
-  auto res = Get<response<string_body>>(responseValue);
-  assert(res.status == 200 && "Failed to shutdown");
+  auto res = Get<resp_type>(responseValue);
+  assert(res.result_int() == 200 && "Failed to shutdown");
   return 0;
 }

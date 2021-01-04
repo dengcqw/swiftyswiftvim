@@ -1,25 +1,11 @@
 #import "Logging.hpp"
+#include <memory>
 #import "SemanticHTTPServer.hpp"
 
 #import <boost/algorithm/string.hpp>
 #import <boost/program_options.hpp>
 #import <dispatch/dispatch.h>
 #import <iostream>
-
-static void RunMainLoop() {
-  __block boost::asio::io_service *ios = new boost::asio::io_service();
-  boost::asio::signal_set signals(*ios, SIGINT, SIGTERM);
-  signals.async_wait([&](boost::system::error_code const &, int) {});
-
-  dispatch_source_t source = dispatch_source_create(
-      DISPATCH_SOURCE_TYPE_READ, 0, 0, dispatch_get_main_queue());
-  // Poll the io service when events come in
-  dispatch_source_set_event_handler(source, ^{
-    ios->poll();
-  });
-  dispatch_resume(source);
-  dispatch_main();
-}
 
 static auto LogLevelWithProgramOptionLog(std::string option) {
   using namespace ssvim;
@@ -39,9 +25,9 @@ int main(int ac, char const *av[]) {
 
   desc.add_options()("root,r", po::value<std::string>()->default_value("."),
                      "Set the root directory for serving files")(
-      "port,p", po::value<std::uint16_t>()->default_value(8080),
+      "port,p", po::value<std::uint16_t>()->default_value(8081),
       "Set the port number for the server")(
-      "ip", po::value<std::string>()->default_value("0.0.0.0"),
+      "ip", po::value<std::string>()->default_value("127.0.0.1"),
       "Set the IP address to bind to, \"0.0.0.0\" for all")(
       "threads,n", po::value<std::size_t>()->default_value(4),
       "Set the number of threads to use")
@@ -59,7 +45,7 @@ int main(int ac, char const *av[]) {
 
   std::string ip = vm["ip"].as<std::string>();
 
-  std::size_t threads = vm["threads"].as<std::size_t>();
+  //std::size_t threads = vm["threads"].as<std::size_t>();
   std::string log = vm["log"].as<std::string>();
 
   using endpoint_type = boost::asio::ip::tcp::endpoint;
@@ -72,7 +58,16 @@ int main(int ac, char const *av[]) {
   ServiceContext ctx("SomeSecret", LogLevelWithProgramOptionLog(
                                        boost::to_upper_copy<std::string>(log)));
   endpoint_type ep{address_type::from_string(ip), port};
-  SemanticHTTPServer server(ep, threads, root, ctx);
-  RunMainLoop();
+  boost::asio::io_context ioc{1};
+  std::make_shared<SemanticHTTPServer>(ioc, ep, root, ctx)->run();
+  ioc.run();
+
+  net::signal_set signals(ioc, SIGINT, SIGTERM);
+  signals.async_wait([&](beast::error_code const&, int) {
+      // Stop the `io_context`. This will cause `run()`
+      // to return immediately, eventually destroying the
+      // `io_context` and all of the sockets in it.
+      ioc.stop();
+  });
   return 0;
 }

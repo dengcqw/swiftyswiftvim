@@ -1,6 +1,7 @@
 message("SSVIM CMAKE START")
 
 cmake_minimum_required(VERSION 2.8)
+project("SwiftySwifter")
 
 # Boost
 set(BOOST_INCLUDEDIR "/usr/local/Cellar/boost/1.74.0/include/")
@@ -77,7 +78,6 @@ add_definitions(${GLOBAL_CXX_FLAGS})
 set(CMAKE_CXX_FLAGS ${SKT_FLAGS})
 
 add_executable(http_server
-    file_body.hpp
     Logging.hpp
     Logging.cpp
     SemanticHTTPServer.hpp
@@ -87,18 +87,18 @@ add_executable(http_server
     HTTPServerMain.cpp
 )
 
-#add_executable(test_driver
-    #Logging.hpp
-    #Logging.cpp
-    #SwiftCompleter.hpp
-    #SwiftCompleter.cpp
-    #Driver.cpp
-#)
+add_executable(test_driver
+    Logging.hpp
+    Logging.cpp
+    SwiftCompleter.hpp
+    SwiftCompleter.cpp
+    Driver.cpp
+)
 
-#add_executable(integration_tests
-    #APIIntegrationTests.cpp
-    #Logging.cpp
-#)
+add_executable(integration_tests
+    APIIntegrationTests.cpp
+    Logging.cpp
+)
 
 target_link_libraries(http_server ${Boost_LIBRARIES} Threads::Threads)
 
