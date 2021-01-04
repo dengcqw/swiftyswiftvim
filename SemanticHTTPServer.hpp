@@ -1,9 +1,5 @@
 #import "Logging.hpp"
-#import <beast/core/handler_helpers.hpp>
-#import <beast/core/handler_ptr.hpp>
-#import <beast/core/placeholders.hpp>
-#import <beast/core/streambuf.hpp>
-#import <beast/http.hpp>
+#import <boost/beast.hpp>
 #import <boost/asio.hpp>
 #import <cstddef>
 #import <cstdio>
@@ -17,8 +13,8 @@
 namespace ssvim {
 namespace http {
 
-using namespace beast;
-using namespace beast::http;
+using namespace boost::beast;
+using namespace boost::beast::http;
 
 struct ServiceContext {
 public:
@@ -56,7 +52,7 @@ public:
     _acceptor.listen(boost::asio::socket_base::max_connections);
     _acceptor.async_accept(_socket,
                            std::bind(&SemanticHTTPServer::onAccept, this,
-                                     beast::asio::placeholders::error));
+                                     boost::asio::placeholders::error));
     _thread.reserve(threads);
     for (std::size_t i = 0; i < threads; ++i)
       _thread.emplace_back([&] { _ioService.run(); });
@@ -101,7 +97,7 @@ private:
       auto &d = *d_;
       d.cont = d.cont || again;
       if (!again) {
-        beast::http::async_write(d.s, d.m, std::move(*this));
+          boost::beast::http::async_write(d.s, d.m, std::move(*this));
         return;
       }
       d_.invoke(ec);

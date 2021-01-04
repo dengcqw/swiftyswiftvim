@@ -3,15 +3,8 @@ message("SSVIM CMAKE START")
 cmake_minimum_required(VERSION 2.8)
 
 # Boost
-
-# Build local checkout of boost
-message("Building boost")
-execute_process (
-    COMMAND bash -c "${CMAKE_CURRENT_SOURCE_DIR}/build_boost.sh"
-    OUTPUT_VARIABLE BOOST_BUILD_OUTPUT
-)
-set(BOOST_INCLUDEDIR "${CMAKE_CURRENT_SOURCE_DIR}/build/vendor/boost/include/")
-set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/build/vendor/boost/")
+set(BOOST_INCLUDEDIR "/usr/local/Cellar/boost/1.74.0/include/")
+set(BOOST_ROOT "/usr/local/Cellar/boost/1.74.0")
 
 ## Boost includes
 
@@ -24,6 +17,7 @@ include_directories(${BOOST_INCLUDEDIR})
 option(Boost_USE_STATIC_LIBS "Use static libraries for boost" ON)
 set(BOOST_USE_MULTITHREADED ON)
 
+find_package(Threads)
 find_package(Boost REQUIRED COMPONENTS
     coroutine
     context
@@ -34,15 +28,9 @@ find_package(Boost REQUIRED COMPONENTS
     )
 
 link_libraries(${Boost_LIBRARIES})
+message("Boost_LIBRARIES: ${Boost_LIBRARIES}")
 add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING=1) # for asio
 
-## Beast HTTP
-
-include_directories(vendor/Beast/include/)
-
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-
-find_package(Threads)
 
 # Include vendored deps
 
@@ -99,18 +87,18 @@ add_executable(http_server
     HTTPServerMain.cpp
 )
 
-add_executable(test_driver
-    Logging.hpp
-    Logging.cpp
-    SwiftCompleter.hpp
-    SwiftCompleter.cpp
-    Driver.cpp
-)
+#add_executable(test_driver
+    #Logging.hpp
+    #Logging.cpp
+    #SwiftCompleter.hpp
+    #SwiftCompleter.cpp
+    #Driver.cpp
+#)
 
-add_executable(integration_tests
-    APIIntegrationTests.cpp
-    Logging.cpp
-)
+#add_executable(integration_tests
+    #APIIntegrationTests.cpp
+    #Logging.cpp
+#)
 
 target_link_libraries(http_server ${Boost_LIBRARIES} Threads::Threads)
 

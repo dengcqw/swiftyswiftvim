@@ -108,7 +108,7 @@ struct CompletionContext {
     return {
         "-sdk",
         "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk",
-        "-target", "arm64-apple-ios8.0",
+        "-target", "arm64-apple-ios14.3",
     };
   }
 };
@@ -504,8 +504,8 @@ const std::string SwiftCompleter::CandidatesForLocationInFile(
   SourceKitService sktService(_logger.level());
   char *response = NULL;
   sktService.CompletionOpen(ctx, &response);
-  sktService.CompletionUpdate(ctx, &response);
-  sktService.CompletionClose(ctx);
+  //sktService.CompletionUpdate(ctx, &response);
+  //sktService.CompletionClose(ctx);
 
   if (response == NULL) {
     // FIXME: Propagate SourceKitService Errors

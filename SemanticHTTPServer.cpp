@@ -3,12 +3,11 @@
 #import "SwiftCompleter.hpp"
 #import "file_body.hpp"
 
-#import <beast/core/handler_helpers.hpp>
-#import <beast/core/handler_ptr.hpp>
-#import <beast/core/placeholders.hpp>
-#import <beast/core/streambuf.hpp>
-#import <beast/http.hpp>
-
+//#import <beast/core/handler_helpers.hpp>
+//#import <beast/core/handler_ptr.hpp>
+//#import <beast/core/placeholders.hpp>
+//#import <beast/core/streambuf.hpp>
+#import <boost/beast.hpp>
 #import <boost/asio.hpp>
 #import <boost/property_tree/json_parser.hpp>
 #import <boost/property_tree/ptree.hpp>
@@ -34,7 +33,7 @@ static auto HeaderKeyContentType = "Content-Type";
 static auto HeaderKeyServer = "Server";
 static auto HeaderValueServer = "SSVIM";
 
-using namespace beast::http;
+using namespace boost::beast::http;
 
 namespace ssvim {
 namespace http {

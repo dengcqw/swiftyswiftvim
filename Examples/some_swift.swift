@@ -13,6 +13,8 @@ class MySwift : NSObject {
         print("hello \(toPerson), and \(otherPerson)");
     }
     func someOtherFunc(){
+        let i = 10
+        self.
     }
 
     func anotherFunction(){
