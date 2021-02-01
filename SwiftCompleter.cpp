@@ -1,3 +1,5 @@
+#include "boost/core/ignore_unused.hpp"
+#include <algorithm>
 #import <assert.h>
 #import <dispatch/dispatch.h>
 #import <fstream>
@@ -206,13 +208,13 @@ static bool CodeCompleteRequest(sourcekitd_uid_t requestUID, const char *name,
   sourcekitd_request_dictionary_set_string(request, KeySourceText, sourceText);
 
   auto opts = sourcekitd_request_dictionary_create(nullptr, nullptr, 0);
-  {
-    if (filterText) {
-      sourcekitd_request_dictionary_set_string(opts, KeyFilterText, filterText);
-      sourcekitd_request_dictionary_set_value(request, KeyCodeCompleteOptions,
-                                          opts);
-    }
-  }
+  //{ // not support by sourcekit
+    //if (filterText) {
+      //sourcekitd_request_dictionary_set_string(opts, KeyFilterText, filterText);
+      //sourcekitd_request_dictionary_set_value(request, KeyCodeCompleteOptions,
+                                          //opts);
+    //}
+  //}
   sourcekitd_request_release(opts);
 
   auto args = sourcekitd_request_array_create(nullptr, 0);
@@ -381,11 +383,13 @@ int SourceKitService::CompletionOpen(CompletionContext &ctx, char **oresponse) {
   std::string CleanFile;
   GetOffset(ctx, &CodeCompletionOffset, &CleanFile);
 
+  _logger << "offset: " << CodeCompletionOffset;
   bool isError = CodeCompleteRequest(
       RequestCodeCompleteOpen, ctx.sourceFilename.data(), CodeCompletionOffset,
       CleanFile.c_str(), ctx.compilerArgs(), nullptr,
       [&](sourcekitd_object_t response) -> bool {
         if (sourcekitd_response_is_error(response)) {
+          _logger.log(LogLevelExtreme, sourcekitd_response_error_get_description(response));
           return true;
         }
         *oresponse = PrintResponse(response);

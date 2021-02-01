@@ -3,6 +3,7 @@
 #import <dispatch/dispatch.h>
 #import <iostream>
 #import <string>
+#import <functional>
 
 using namespace ssvim;
 using namespace std;
@@ -18,45 +19,33 @@ struct Runner {
     unsavedFile.fileName = fileName;
 
     files.push_back(unsavedFile);
+
+    std::cout << "in complete" << std::endl;
     auto result = completer.CandidatesForLocationInFile(fileName, line, column,
-                                                        files, flags, nullptr);
+                                                        files, flags, std::string());
 
     return result;
   }
 };
 
-std::string contents = "// \n\
-//  some_swift.swift \n\
-//  Swift Completer \n\
-// \n\
-//  Created by Jerry Marino on 4/30/16. \n\
-//  Copyright © 2016 Jerry Marino. All rights reserved. \n\
-// \n\
- \n\
- \n\
-    func someOtherFunc(){ \n\
-    } \n\
- \n\
-    func anotherFunction(){ \n\
-    someOther()\n\
-    } \n\
-\n";
-
+std::string contents = "import UIKit; UIView.";
 using namespace ssvim;
 static ssvim::Logger logger(LogLevelInfo);
 
 int wrapped_main() {
   Runner runner;
-  std::cout << contents;
-  vector<string> flags;
-  flags.push_back("-sdk");
-  flags.push_back("/Applications/Xcode.app/Contents/Developer/Platforms/"
-                  "MacOSX.platform/Developer/SDKs/MacOSX.sdk");
-  flags.push_back("-target");
-  flags.push_back("x86_64-apple-macosx10.12");
 
-  auto exampleFilePath = "/tmp/x";
-  auto result = runner.complete(exampleFilePath, contents, flags, 19, 13);
+  auto exampleFilePath = "CBCB056E-0FC3-403B-9D91-556A88BD3F61.swift";
+  vector<string> flags;
+  flags.push_back("-c");
+  flags.push_back(exampleFilePath);
+  flags.push_back("-sdk");
+  flags.push_back("/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk");
+  flags.push_back("-target");
+  flags.push_back("x86_64-apple-ios12.1-simulator");
+
+  auto result = runner.complete(exampleFilePath, contents, flags, 1, 21);
+  std::cout << "complete done" << std::endl;
   logger << result;
   logger << "Done";
   exit(0);

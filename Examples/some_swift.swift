@@ -8,13 +8,12 @@
 
 import Foundation
 
-class MySwift : NSObject {
+class MySwift : BaseClass {
     func sayHello(toPerson: String, otherPerson: String?){
         print("hello \(toPerson), and \(otherPerson)");
     }
-    func someOtherFunc(){
+    func someOtherFunc() {
         let i = 10
-        self.
     }
 
     func anotherFunction(){

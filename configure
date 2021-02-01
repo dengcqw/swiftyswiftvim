@@ -5,4 +5,5 @@ cd build
 cmake -E touch ..
 
 cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 "Unix Makefiles" ..
+#cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1 "Unix Makefiles" ..
 
